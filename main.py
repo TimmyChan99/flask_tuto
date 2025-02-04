@@ -35,6 +35,5 @@ def api_echo():
     if request.method == 'PATCH':
         return 'ECHO: PATCH'
 
-@
 if __name__ == '__main__':
     app.run()
