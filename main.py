@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, request
+from flask import Flask, redirect, url_for, request, json, Response, jsonify
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -18,9 +19,9 @@ def get_articles():
 def get_article(id):
     return f'article id: {id}'
 
-@app.route('/admin')
-def get_admin():
-    return redirect(url_for('get_home'))
+# @app.route('/admin')
+# def get_admin():
+#     return redirect(url_for('get_home'))
 
 @app.route('/echo', methods = ['POST', 'GET', 'PATCH', 'PUT', 'DELETE'])
 def api_echo():
@@ -34,6 +35,82 @@ def api_echo():
         return 'ECHO: PUT'
     if request.method == 'PATCH':
         return 'ECHO: PATCH'
+
+@app.route('/messages', methods = ['POST'])
+def get_messages():
+    if request.headers['Content-type'] == 'text/plain':
+        return 'Text message: ' + request.data
+
+    if request.headers['Content-type'] == 'application/json':
+        return 'JSON message: ' + json.dumps(request.json)
+
+    return 'content not specified'
+
+@app.route('/hello', methods = ['GET'])
+def api_hello():
+    data = {
+        'hello'  : 'world',
+        'number' : 3
+    }
+    js = json.dumps(data)
+
+    resp = Response(js, status=200, mimetype='application/json')
+    resp.headers['Link'] = 'http://luisrei.com'
+
+    return resp
+
+@app.errorhandler(404)
+def not_found():
+    message = {
+        'status': 404,
+        'message': 'Not found ' + request.url
+    }
+    resp = jsonify(message)
+    resp.status_code = 404
+
+    return resp
+
+
+@app.route('/users/<userid>', methods=['GET'])
+def api_users(userid):
+    users = {'1': 'john', '2': 'steve', '3': 'bill'}
+
+    if userid in users:
+        return jsonify({userid: users[userid]})
+    else:
+        return not_found()
+
+def check_auth(username, password):
+    return username == 'admin' and password == 'secret'
+
+def authenticate():
+    message = { 'message': 'You need to authenticate'}
+    resp = jsonify(message)
+
+    resp.status_code = 401
+    resp.headers['WWW-Authenticate'] = 'Basic realm="Dev"'
+
+    return resp
+
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+
+        if not auth:
+            return authenticate()
+
+        elif not check_auth(auth.username, auth.password):
+            return authenticate()
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+@app.route('/admin')
+@require_auth
+def api_admin():
+    return "Shhh this is top secret spy stuff!"
 
 if __name__ == '__main__':
     app.run()
