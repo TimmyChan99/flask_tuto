@@ -1,0 +1,3 @@
+[submodule "practice-project"]
+	path = practice-project
+	url = https://github.com/ibm-developer-skills-network/zzrjt-practice-project-emb-ai.git
