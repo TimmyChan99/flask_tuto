@@ -4,11 +4,11 @@ from EmotionDetection.emotion_detection import emotion_detector
 app = Flask(__name__)
 
 @app.route('/emotionDetector')
-def emotion_detector():
+def process_emotion():
     text_to_analyze = request.args.get('textToAnalyze')
 
     if text_to_analyze:
-        result = emotion_detector('happy')
+        result = emotion_detector(text_to_analyze)
 
         return f"""
         For the given statement, the system response is 
