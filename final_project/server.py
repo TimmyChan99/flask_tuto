@@ -5,10 +5,10 @@ app = Flask(__name__)
 
 @app.route('/emotionDetector')
 def emotion_detector():
-    text_to_analyse = request.args.get('textToAnalyse')
+    text_to_analyze = request.args.get('textToAnalyze')
 
-    if text_to_analyse:
-        result = emotion_detector(text_to_analyse)
+    if text_to_analyze:
+        result = emotion_detector('happy')
 
         return f"""
         For the given statement, the system response is 
@@ -21,7 +21,11 @@ def emotion_detector():
         """
     
     return render_template('index.html')
+    
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
